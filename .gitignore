@@ -1,6 +1,8 @@
 data/raw/*.csv
 data/raw/*.zip
 data/processed/*.csv
+data/processed/splits/*.csv
+outputs/reports/validation_*/*.csv
 __pycache__/
 *.pyc
 .ipynb_checkpoints/

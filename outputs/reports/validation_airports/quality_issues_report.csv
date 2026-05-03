@@ -1,0 +1,6 @@
+Issue Type,Columns
+Columns with one unique value,None
+Columns with >30% missing,None
+Columns with leading/trailing spaces,"AirportName, ICAO, City_Name, City_IATA, Country_CodeA3"
+Columns with inconsistent casing,"AirportName, City_Name"
+Numeric columns with outliers,None
