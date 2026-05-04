@@ -65,7 +65,7 @@ def clean_raw_flight_data(df: pd.DataFrame, config: dict) -> pd.DataFrame:
             "cancellation_code",  # 98.64% missing
             "year",               # constant value
             "day_of_month",       # not in feature set
-            "fl_date",            # month + day_of_week already capture this
+            # fl_date kept until dep_hour/date are derived in feature engineering
             "origin_city_name", "origin_state_nm",
             "dest_city_name", "dest_state_nm",
             "op_carrier_fl_num",  # flight number, not predictive
@@ -112,11 +112,12 @@ def merge_flight_weather(config: dict) -> None:
 
     Steps (from merging_pipeline notebook):
       1. Load flight_features.csv + weather_features.csv
-      2. Build (origin, month, dep_hour) weather profile via engineering.build_weather_profile
-      3. Left-join flights <- weather profile on ['origin', 'month', 'dep_hour']
-      4. Impute missing weather values with global column means
-      5. IQR-cap outliers on numerical columns
-      6. Save merged_dataset.csv
+      2. Build weather profile (origin, calendar date, dep_hour) via engineering.build_weather_profile
+      3. Left-join flights <- weather profile on merge_keys (default: origin, date, dep_hour)
+      4. Impute missing weather: mean within each calendar date, then global mean fallback
+      5. Drop merge-only columns (e.g. date) per drop_after_merge
+      6. IQR-cap outliers on numerical columns
+      7. Save merged_dataset.csv
     """
     # Import here to avoid circular import at module level
     from src.features.engineering import build_weather_profile
@@ -133,24 +134,64 @@ def merge_flight_weather(config: dict) -> None:
     print(f"Loaded flight features : {flights.shape}")
     print(f"Loaded weather features: {weather_hourly.shape}")
 
-    # Build (origin, month, dep_hour) weather profile
+    merge_keys = merge_cfg.get("merge_keys", ["origin", "date", "dep_hour"])
+    missing_flight_keys = [k for k in merge_keys if k not in flights.columns]
+    if missing_flight_keys:
+        raise KeyError(
+            f"flight_features.csv is missing merge key column(s) {missing_flight_keys!r}. "
+            "Ensure build_flight_features adds `date` from `fl_date` (see flight_pipeline.output_column_order)."
+        )
+
     weather_profile = build_weather_profile(weather_hourly)
     print(f"Weather profile shape  : {weather_profile.shape}")
 
-    # Left-join so every flight row is kept
-    merged = flights.merge(weather_profile, on=["origin", "month", "dep_hour"], how="left")
+    flights = flights.copy()
+    weather_profile = weather_profile.copy()
+    if "date" in merge_keys:
+        flights["date"] = pd.to_datetime(flights["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+        weather_profile["date"] = pd.to_datetime(weather_profile["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+
+    merged = flights.merge(weather_profile, on=merge_keys, how="left")
     print(f"Merged shape           : {merged.shape}")
 
-    # Impute missing weather values with global column means
     weather_cols = merge_cfg.get(
         "weather_cols",
         ["precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"],
     )
-    for col in weather_cols:
-        if col in merged.columns and merged[col].isna().any():
-            global_mean = merged[col].mean()
-            merged[col] = merged[col].fillna(global_mean)
-            print(f"  Imputed {col:<20} with global mean={global_mean:.4f}")
+    impute_group = merge_cfg.get("weather_impute_groupby", "date")
+
+    if impute_group and impute_group in merged.columns:
+        fallback_global = {
+            col: merged[col].mean()
+            for col in weather_cols
+            if col in merged.columns
+        }
+        for col in weather_cols:
+            if col not in merged.columns or not merged[col].isna().any():
+                continue
+            daily_mean = merged.groupby(impute_group, observed=True)[col].transform("mean")
+            merged[col] = merged[col].fillna(daily_mean)
+        for col in weather_cols:
+            if col not in merged.columns:
+                continue
+            if merged[col].isna().any():
+                merged[col] = merged[col].fillna(fallback_global[col])
+        print(
+            "  Imputed weather with per-date means "
+            f"(groupby={impute_group!r}, global fallback if a day has no observations)"
+        )
+    else:
+        for col in weather_cols:
+            if col in merged.columns and merged[col].isna().any():
+                global_mean = merged[col].mean()
+                merged[col] = merged[col].fillna(global_mean)
+                print(f"  Imputed {col:<20} with global mean={global_mean:.4f}")
+
+    drop_after = merge_cfg.get("drop_after_merge", ["date"])
+    to_drop = [c for c in drop_after if c in merged.columns]
+    if to_drop:
+        merged = merged.drop(columns=to_drop)
+        print(f"Dropped after merge    : {to_drop}")
 
     # IQR-cap outliers on numerical columns
     cols_to_cap = merge_cfg.get(

@@ -59,10 +59,10 @@ delay_threshold_minutes = 15
 weekend_day_of_week_values = [6, 7]
 output_column_order = [
     "airline", "origin", "dest", "distance",
-    "dep_hour", "day_of_week", "month", "is_weekend", "is_delayed"
+    "dep_hour", "date", "day_of_week", "month", "is_weekend", "is_delayed"
 ]
 cols_to_drop = [
-    "cancellation_code", "year", "day_of_month", "fl_date",
+    "cancellation_code", "year", "day_of_month",
     "origin_city_name", "origin_state_nm",
     "dest_city_name", "dest_state_nm",
     "op_carrier_fl_num",
@@ -87,6 +87,11 @@ cols_to_drop = [
 "Phoenix"      = ["PHX"]
 
 [merging]
+merge_keys = ["origin", "date", "dep_hour"]
+drop_after_merge = ["date"]
+# Column used to compute daily means before filling missing weather (same as merging_pipeline notebook).
+# Set to "" to use a single global mean per column instead.
+weather_impute_groupby = "date"
 weather_cols = ["precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
 outlier_cap_cols = ["distance", "precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
 iqr_multiplier = 1.5

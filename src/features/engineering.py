@@ -14,7 +14,7 @@ Weather pipeline (build_weather_features):
 
 Weather profile  (build_weather_profile):
   weather_features.csv
-                   -->  aggregate to (origin, month, dep_hour)
+                   -->  rename to (origin, date, dep_hour) for join with flights
                    -->  used by merge_flight_weather in preprocess.py
 """
 
@@ -52,6 +52,7 @@ FLIGHT_COLUMN_ORDER = [
     "dest",
     "distance",
     "dep_hour",
+    "date",
     "day_of_week",
     "month",
     "is_weekend",
@@ -85,6 +86,11 @@ def _engineer_flight_features(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     # Rename BTS carrier code column to generic name
     if "op_unique_carrier" in df.columns:
         df = df.rename(columns={"op_unique_carrier": "airline"})
+
+    # Calendar date for weather join (ISO string matches weather_features after CSV round-trip)
+    if "fl_date" in df.columns:
+        df["date"] = pd.to_datetime(df["fl_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+        df = df.drop(columns=["fl_date"])
 
     # Keep only the expected feature columns in the defined order
     col_order = flight_cfg.get("output_column_order", FLIGHT_COLUMN_ORDER)
@@ -168,28 +174,14 @@ def build_weather_features(config: dict) -> None:
 
 
 def build_weather_profile(weather_hourly: pd.DataFrame) -> pd.DataFrame:
-    """Aggregate hourly weather to a (origin, month, dep_hour) mean profile.
+    """Prepare hourly weather for merge on (origin, date, dep_hour).
 
-    The flight dataset has month + dep_hour but no full date, so we collapse
-    all daily readings into one representative row per (airport, month, hour).
-    The result is renamed to match flight column names so it can be joined
-    directly on ['origin', 'month', 'dep_hour'].
+    `weather_features.csv` is already one row per (iata, date, hour). We only
+    normalize `date` and rename columns to match the flight feature table.
     """
-    weather_hourly = weather_hourly.copy()
-    weather_hourly["date"] = pd.to_datetime(weather_hourly["date"])
-    weather_hourly["month"] = weather_hourly["date"].dt.month
-
-    profile = (
-        weather_hourly.groupby(["iata", "month", "hour"], as_index=False)
-        .agg(
-            precipitation=("precipitation", "mean"),
-            temperature_c=("temperature_c", "mean"),
-            humidity_pct=("humidity_pct", "mean"),
-            wind_speed_kmh=("wind_speed_kmh", "mean"),
-        )
-        .rename(columns={"iata": "origin", "hour": "dep_hour"})
-    )
-    return profile
+    profile = weather_hourly.copy()
+    profile["date"] = pd.to_datetime(profile["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    return profile.rename(columns={"iata": "origin", "hour": "dep_hour"})
 
 
 def parse_args() -> argparse.Namespace:
