@@ -1,6 +1,6 @@
 DATA VALIDATION SUMMARY
 ========================
-Dataset file: ../data/raw/weather_data.csv
+Dataset file: data/raw/weather_data.csv
 Rows: 1000000
 Columns: 6
 Duplicate rows: 0

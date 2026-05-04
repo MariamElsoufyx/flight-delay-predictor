@@ -1,14 +1,14 @@
 Column,Data Type,Non-Null Count,Missing Count,Unique Values
-AirportName,object,6392,1,6333
-IATA,object,6372,21,6373
-ICAO,object,5091,1302,5090
-TimeZone,object,6305,88,378
-City_Name,object,6393,0,5698
-City_IATA,object,6331,62,5703
+AirportName,str,6392,1,6333
+IATA,str,6372,21,6373
+ICAO,str,5091,1302,5090
+TimeZone,str,6305,88,378
+City_Name,str,6393,0,5698
+City_IATA,str,6331,62,5703
 UTC_Offset_Hours,float64,6305,88,37
 UTC_Offset_Seconds,float64,6305,88,37
-Country_CodeA2,object,6379,14,230
-Country_CodeA3,object,6393,0,228
-Country_Name,object,6393,0,230
+Country_CodeA2,str,6379,14,230
+Country_CodeA3,str,6393,0,228
+Country_Name,str,6393,0,230
 GeoPointLat,float64,6393,0,6036
 GeoPointLong,float64,6393,0,6048

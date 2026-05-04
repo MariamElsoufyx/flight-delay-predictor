@@ -1,0 +1,104 @@
+[project]
+name = "flight-delay-predictor"
+notebooks_dir = "notebooks"
+src_dir = "src"
+
+[paths]
+data_raw_dir = "data/raw"
+data_processed_dir = "data/processed"
+splits_dir = "data/processed/splits"
+outputs_dir = "outputs"
+reports_dir = "outputs/reports"
+encoders_dir = "outputs/encoders"
+
+[files.raw]
+flight_data = "data/raw/flight_data_2024.csv"
+weather_data = "data/raw/weather_data.csv"
+airports_data = "data/raw/global_airports.csv"
+
+[files.processed]
+flight_features = "data/processed/flight_features.csv"
+weather_features = "data/processed/weather_features.csv"
+merged_dataset = "data/processed/merged_dataset.csv"
+airports_clean = "data/processed/airports_clean.csv"
+
+[files.splits]
+x_train = "data/processed/splits/X_train.csv"
+y_train = "data/processed/splits/y_train.csv"
+x_val = "data/processed/splits/X_val.csv"
+y_val = "data/processed/splits/y_val.csv"
+x_test = "data/processed/splits/X_test.csv"
+y_test = "data/processed/splits/y_test.csv"
+
+[files.encoders]
+label_encoder_airline = "outputs/encoders/le_airline.pkl"
+label_encoder_origin = "outputs/encoders/le_origin.pkl"
+label_encoder_dest = "outputs/encoders/le_dest.pkl"
+scaler = "outputs/encoders/scaler.pkl"
+class_weights = "outputs/encoders/class_weights.pkl"
+
+[files.reports]
+eda_flight = "outputs/reports/eda_flight.png"
+eda_weather = "outputs/reports/eda_weather.png"
+weather_coverage = "outputs/reports/weather_coverage.png"
+correlation_heatmap = "outputs/reports/correlation_heatmap.png"
+eda_weather_delays = "outputs/reports/eda_weather_delays.png"
+eda_weather_boxplots = "outputs/reports/eda_weather_boxplots.png"
+class_balance_comparison = "outputs/reports/class_balance_comparison.png"
+
+[validation]
+flight_output_dir = "outputs/reports/validation_flight"
+weather_output_dir = "outputs/reports/validation_weather"
+airports_output_dir = "outputs/reports/validation_airports"
+missing_threshold = 30
+outlier_method = "iqr"
+airports_id_columns = ["IATA"]
+
+[flight_pipeline]
+delay_threshold_minutes = 15
+weekend_day_of_week_values = [6, 7]
+output_column_order = [
+    "airline", "origin", "dest", "distance",
+    "dep_hour", "day_of_week", "month", "is_weekend", "is_delayed"
+]
+cols_to_drop = [
+    "cancellation_code", "year", "day_of_month", "fl_date",
+    "origin_city_name", "origin_state_nm",
+    "dest_city_name", "dest_state_nm",
+    "op_carrier_fl_num",
+    "dep_time", "wheels_off", "wheels_on",
+    "taxi_out", "taxi_in", "arr_time",
+    "actual_elapsed_time", "air_time",
+    "carrier_delay", "weather_delay", "nas_delay",
+    "security_delay", "late_aircraft_delay",
+    "dep_delay"
+]
+
+[weather_pipeline.city_to_iata]
+"San Diego"    = ["SAN"]
+"Philadelphia" = ["PHL"]
+"San Antonio"  = ["SAT"]
+"San Jose"     = ["SJC"]
+"New York"     = ["JFK", "LGA", "EWR"]
+"Houston"      = ["IAH", "HOU"]
+"Dallas"       = ["DFW", "DAL"]
+"Chicago"      = ["ORD", "MDW"]
+"Los Angeles"  = ["LAX"]
+"Phoenix"      = ["PHX"]
+
+[merging]
+weather_cols = ["precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
+outlier_cap_cols = ["distance", "precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
+iqr_multiplier = 1.5
+
+[preprocessing]
+target_column = "is_delayed"
+train_split = 0.70
+val_split = 0.15
+test_split = 0.15
+validation_from_remaining = 0.1765
+random_state = 42
+stratify = true
+undersampling_majority_to_minority_ratio = 2.0
+categorical_label_encode_cols = ["airline", "origin", "dest"]
+numeric_scale_cols = ["distance", "dep_hour", "precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
