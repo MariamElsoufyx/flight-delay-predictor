@@ -1,0 +1,14 @@
+Column,Missing Count,Missing %
+ICAO,1302,20.37
+TimeZone,88,1.38
+UTC_Offset_Hours,88,1.38
+UTC_Offset_Seconds,88,1.38
+City_IATA,62,0.97
+IATA,21,0.33
+Country_CodeA2,14,0.22
+AirportName,1,0.02
+City_Name,0,0.0
+Country_CodeA3,0,0.0
+Country_Name,0,0.0
+GeoPointLat,0,0.0
+GeoPointLong,0,0.0

@@ -1,0 +1,27 @@
+Column,Outlier Count,Outlier %
+dep_delay,909066,12.84
+arr_delay,670540,9.47
+taxi_in,466184,6.59
+distance,420064,5.93
+crs_elapsed_time,360026,5.09
+taxi_out,355622,5.02
+air_time,349654,4.94
+actual_elapsed_time,341997,4.83
+op_carrier_fl_num,888,0.01
+year,0,0.0
+diverted,0,0.0
+security_delay,0,0.0
+nas_delay,0,0.0
+weather_delay,0,0.0
+carrier_delay,0,0.0
+arr_time,0,0.0
+cancelled,0,0.0
+month,0,0.0
+crs_arr_time,0,0.0
+wheels_on,0,0.0
+wheels_off,0,0.0
+dep_time,0,0.0
+crs_dep_time,0,0.0
+day_of_week,0,0.0
+day_of_month,0,0.0
+late_aircraft_delay,0,0.0

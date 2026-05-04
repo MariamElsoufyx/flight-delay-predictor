@@ -1,0 +1,6 @@
+Issue Type,Columns
+Columns with one unique value,None
+Columns with >30% missing,None
+Columns with leading/trailing spaces,None
+Columns with inconsistent casing,None
+Numeric columns with outliers,None

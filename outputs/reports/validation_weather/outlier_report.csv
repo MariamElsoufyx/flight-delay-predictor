@@ -1,0 +1,5 @@
+Column,Outlier Count,Outlier %
+Temperature_C,0,0.0
+Humidity_pct,0,0.0
+Precipitation_mm,0,0.0
+Wind_Speed_kmh,0,0.0

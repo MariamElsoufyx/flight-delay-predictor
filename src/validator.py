@@ -260,11 +260,12 @@ def validate_dataset(
 # =========================
 # Example usage
 # =========================
-validate_dataset(
-    file_path="../data/raw/flight_data_2024.csv",
-    output_folder="../outputs/reports/flight_validation",
-    target_column=None,
-    id_columns=None,
-    missing_threshold=30,
-    outlier_method="iqr"
-)
+if __name__ == "__main__":
+    validate_dataset(
+        file_path="../data/raw/flight_data_2024.csv",
+        output_folder="../outputs/reports/flight_validation",
+        target_column=None,
+        id_columns=None,
+        missing_threshold=30,
+        outlier_method="iqr"
+    )

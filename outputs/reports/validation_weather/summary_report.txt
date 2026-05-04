@@ -1,0 +1,12 @@
+DATA VALIDATION SUMMARY
+========================
+Dataset file: ../data/raw/weather_data.csv
+Rows: 1000000
+Columns: 6
+Duplicate rows: 0
+Columns with >30% missing: None
+Columns with one unique value: None
+Columns with leading/trailing spaces: None
+Columns with inconsistent casing: None
+Numeric columns with outliers: None
+Class imbalance: Not checked

@@ -1,0 +1,6 @@
+Issue Type,Columns
+Columns with one unique value,year
+Columns with >30% missing,cancellation_code
+Columns with leading/trailing spaces,None
+Columns with inconsistent casing,None
+Numeric columns with outliers,"dep_delay, arr_delay, taxi_in, distance, crs_elapsed_time, taxi_out, air_time, actual_elapsed_time, op_carrier_fl_num"
