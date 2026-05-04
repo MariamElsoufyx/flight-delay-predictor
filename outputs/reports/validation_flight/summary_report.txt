@@ -1,6 +1,6 @@
 DATA VALIDATION SUMMARY
 ========================
-Dataset file: ../data/raw/flight_data_2024.csv
+Dataset file: D:\Uni Courses\Spring 2026\Data science\Project\flight-delay-predictor\data\raw\flight_data_2024.csv
 Rows: 7079081
 Columns: 35
 Duplicate rows: 0

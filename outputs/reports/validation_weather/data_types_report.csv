@@ -1,6 +1,6 @@
 Column,Data Type,Non-Null Count,Missing Count,Unique Values
-Location,object,1000000,0,10
-Date_Time,object,1000000,0,959526
+Location,str,1000000,0,10
+Date_Time,str,1000000,0,959526
 Temperature_C,float64,1000000,0,1000000
 Humidity_pct,float64,1000000,0,1000000
 Precipitation_mm,float64,1000000,0,1000000

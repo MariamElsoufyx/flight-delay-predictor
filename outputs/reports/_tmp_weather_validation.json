@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-05-04T10:47:37.455180+00:00",
+  "row_count": 1000000,
+  "column_count": 6,
+  "duplicate_rows": 0,
+  "missing_by_column": {
+    "Location": 0,
+    "Date_Time": 0,
+    "Temperature_C": 0,
+    "Humidity_pct": 0,
+    "Precipitation_mm": 0,
+    "Wind_Speed_kmh": 0
+  },
+  "dtypes": {
+    "Location": "str",
+    "Date_Time": "str",
+    "Temperature_C": "float64",
+    "Humidity_pct": "float64",
+    "Precipitation_mm": "float64",
+    "Wind_Speed_kmh": "float64"
+  },
+  "numeric_summary": {},
+  "categorical_summary": {
+    "Location": {
+      "unique_count": 10,
+      "top_values": {
+        "Phoenix": 100209,
+        "Chicago": 100164,
+        "Philadelphia": 100122,
+        "Houston": 100076,
+        "New York": 99972
+      }
+    }
+  }
+}

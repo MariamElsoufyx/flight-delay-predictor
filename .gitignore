@@ -3,6 +3,7 @@ data/raw/*.zip
 data/processed/*.csv
 data/processed/splits/*.csv
 outputs/reports/validation_*/*.csv
+.venv/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/

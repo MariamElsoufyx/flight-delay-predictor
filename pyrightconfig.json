@@ -1,0 +1,7 @@
+{
+  "include": ["src"],
+  "exclude": [".venv", "**/__pycache__"],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": false,
+  "pythonVersion": "3.11"
+}

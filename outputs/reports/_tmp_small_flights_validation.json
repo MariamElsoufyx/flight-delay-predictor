@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-05-04T10:47:58.035856+00:00",
+  "row_count": 2,
+  "column_count": 12,
+  "duplicate_rows": 0,
+  "missing_by_column": {
+    "distance": 0,
+    "crs_dep_time": 0,
+    "crs_arr_time": 0,
+    "arr_delay": 0,
+    "dep_delay": 0,
+    "cancelled": 0,
+    "diverted": 0,
+    "op_unique_carrier": 0,
+    "origin": 0,
+    "dest": 0,
+    "cancellation_code": 2,
+    "is_delayed": 0
+  },
+  "dtypes": {
+    "distance": "int64",
+    "crs_dep_time": "int64",
+    "crs_arr_time": "int64",
+    "arr_delay": "int64",
+    "dep_delay": "int64",
+    "cancelled": "int64",
+    "diverted": "int64",
+    "op_unique_carrier": "str",
+    "origin": "str",
+    "dest": "str",
+    "cancellation_code": "float64",
+    "is_delayed": "int64"
+  },
+  "numeric_summary": {
+    "distance": {
+      "min": 100.0,
+      "max": 200.0,
+      "mean": 150.0,
+      "std": 70.71067811865476
+    },
+    "crs_dep_time": {
+      "min": 700.0,
+      "max": 815.0,
+      "mean": 757.5,
+      "std": 81.31727983645297
+    },
+    "crs_arr_time": {
+      "min": 900.0,
+      "max": 1010.0,
+      "mean": 955.0,
+      "std": 77.78174593052023
+    },
+    "arr_delay": {
+      "min": 5.0,
+      "max": 30.0,
+      "mean": 17.5,
+      "std": 17.67766952966369
+    },
+    "dep_delay": {
+      "min": 0.0,
+      "max": 20.0,
+      "mean": 10.0,
+      "std": 14.142135623730951
+    },
+    "cancelled": {
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "std": 0.0
+    },
+    "diverted": {
+      "min": 0.0,
+      "max": 0.0,
+      "mean": 0.0,
+      "std": 0.0
+    }
+  },
+  "categorical_summary": {
+    "op_unique_carrier": {
+      "unique_count": 2,
+      "top_values": {
+        "AA": 1,
+        "DL": 1
+      }
+    },
+    "origin": {
+      "unique_count": 2,
+      "top_values": {
+        "ATL": 1,
+        "JFK": 1
+      }
+    },
+    "dest": {
+      "unique_count": 2,
+      "top_values": {
+        "LAX": 1,
+        "SFO": 1
+      }
+    },
+    "cancellation_code": {
+      "unique_count": 0,
+      "top_values": {
+        "nan": 2
+      }
+    }
+  },
+  "target_distribution": {
+    "0": 1,
+    "1": 1
+  }
+}

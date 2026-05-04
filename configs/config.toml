@@ -1,0 +1,37 @@
+[paths]
+raw_flights = "data/raw/flight_data_2024.csv"
+raw_weather = "data/raw/weather_data.csv"
+raw_airports = "data/raw/global_airports.csv"
+processed_flights = "data/processed/flight_features.csv"
+processed_weather = "data/processed/weather_features.csv"
+processed_merged_enriched = "data/processed/merged_enriched.csv"
+airports_clean = "data/processed/airports_clean.csv"
+merged = "data/processed/merged_dataset.csv"
+splits_dir = "data/processed/splits"
+encoders_dir = "outputs/encoders"
+reports_dir = "outputs/reports"
+
+[features]
+delay_threshold_minutes = 15
+categorical = ["airline", "origin", "dest"]
+merged_numeric_before_engineering = [
+    "distance",
+    "dep_hour",
+    "precipitation",
+    "temperature_c",
+    "humidity_pct",
+    "wind_speed_kmh",
+]
+merged_numeric_engineered_extra = ["month", "day_of_week", "is_weekend"]
+target = "is_delayed"
+weather_columns = ["precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
+
+[validation]
+missing_threshold = 30
+outlier_method = "iqr"
+
+[preprocessing]
+test_size = 0.15
+val_fraction_of_remainder = 0.17647058823529413
+random_state = 42
+undersample_ratio = 2.0
