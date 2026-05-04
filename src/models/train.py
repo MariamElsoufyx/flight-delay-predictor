@@ -114,7 +114,6 @@ def train_models(X_train_numeric, y_train, class_weights=None, output_dir='outpu
             n_jobs=-1
         ),
         'XGBoost': XGBClassifier(
-            use_label_encoder=False,
             eval_metric='logloss',
             scale_pos_weight=scale_pos_weight,
             n_jobs=-1
@@ -157,7 +156,7 @@ def tune_xgboost(X_train_numeric, y_train, scale_pos_weight, output_dir='outputs
     }
     
     xgb_pipeline = Pipeline(steps=[
-        ('classifier', XGBClassifier(use_label_encoder=False, eval_metric='logloss'))
+        ('classifier', XGBClassifier( eval_metric='logloss'))
     ])
     
     tuned_xgb = RandomizedSearchCV(

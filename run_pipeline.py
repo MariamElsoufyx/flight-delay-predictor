@@ -42,6 +42,8 @@ STEPS: list[tuple[str, str]] = [
     ("merge",            "Merge flight + weather, impute, cap outliers -> merged_dataset.csv"),
     ("split",            "Encode, scale, split, balance -> splits + encoders"),
     ("eda",              "Generate all EDA report PNGs -> outputs/reports/"),
+    ("train",         "Train models and save to disk"),
+    ("classify",   "Run classification pipeline and save results"),
 ]
 
 STEP_NAMES = [s[0] for s in STEPS]
@@ -80,6 +82,7 @@ def run_split(cfg: dict) -> None:
     preprocess_merged_dataset(cfg)
 
 
+
 def run_eda(cfg: dict) -> None:
     from src.reports.eda import REPORTS
     for name, fn in REPORTS.items():
@@ -88,6 +91,17 @@ def run_eda(cfg: dict) -> None:
             fn(cfg)  # type: ignore[operator]
         except Exception as exc:  # noqa: BLE001
             print(f"  WARNING: {name} skipped ({exc})")
+            
+            
+def run_train(cfg: dict) -> None:
+    from src.models.train import main as train_main
+    train_main()
+
+
+def run_classify(cfg: dict) -> None:
+    from src.models.classify import main as classify_main
+    classify_main()
+    
 
 
 RUNNERS: dict[str, object] = {
@@ -98,6 +112,8 @@ RUNNERS: dict[str, object] = {
     "merge":            run_merge,
     "split":            run_split,
     "eda":              run_eda,
+    "train":         run_train,
+    "classify":   run_classify,
 }
 
 
@@ -184,9 +200,11 @@ def main() -> None:
             duration = time.perf_counter() - t0
             results.append((step, f"FAILED: {exc}", duration))
             print(f"\n[{step}] FAILED after {_fmt_duration(duration)}: {exc}")
+            print(f"error details:{exc!r}")
             _banner("PIPELINE ABORTED", char="!")
             _print_summary(results)
             sys.exit(1)
+            
 
     _banner("PIPELINE COMPLETE")
     _print_summary(results)
