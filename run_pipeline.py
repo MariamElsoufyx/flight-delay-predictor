@@ -9,6 +9,8 @@ Execution order
 5. merge           -- flight_features + weather_features -> data/processed/merged_dataset.csv
 6. split           -- merged_dataset -> train/val/test splits + label encoders + scaler
 7. eda             -- generate all EDA report PNGs -> outputs/reports/
+8. train           -- train baseline + tuned models -> outputs/models/
+9. classify        -- evaluate models, confusion matrix, feature importance -> outputs/reports/
 
 Run the full pipeline:
     python run_pipeline.py
@@ -26,13 +28,14 @@ Show what would run without executing:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 
 
 CONFIG = "configs/config.toml"
 
-# ── ordered step registry ────────────────────────────────────────────────────
+# ordered step registry 
 
 STEPS: list[tuple[str, str]] = [
     ("validate",         "Validate raw datasets (flight, weather, airports)"),
@@ -42,17 +45,19 @@ STEPS: list[tuple[str, str]] = [
     ("merge",            "Merge flight + weather, impute, cap outliers -> merged_dataset.csv"),
     ("split",            "Encode, scale, split, balance -> splits + encoders"),
     ("eda",              "Generate all EDA report PNGs -> outputs/reports/"),
+    ("train",            "Train LR / RF / XGB + tuned XGB -> outputs/models/"),
+    ("classify",         "Evaluate saved models + plots -> outputs/reports/"),
 ]
 
 STEP_NAMES = [s[0] for s in STEPS]
 
 
-# ── individual step runners ──────────────────────────────────────────────────
+# individual step runners
 
 def run_validate(cfg: dict) -> None:
     from src.data.validate import run_default_validations
     run_default_validations.__module__  # noqa: ensure import
-    run_default_validations(CONFIG)
+    run_default_validations(cfg.get("_config_path", CONFIG))
 
 
 def run_clean_airports(cfg: dict) -> None:
@@ -90,6 +95,18 @@ def run_eda(cfg: dict) -> None:
             print(f"  WARNING: {name} skipped ({exc})")
 
 
+def run_train(cfg: dict) -> None:
+    from src.models.train import run_training
+
+    run_training(cfg)
+
+
+def run_classify(cfg: dict) -> None:
+    from src.models.classify import run_classification
+
+    run_classification(cfg)
+
+
 RUNNERS: dict[str, object] = {
     "validate":         run_validate,
     "clean-airports":   run_clean_airports,
@@ -98,10 +115,12 @@ RUNNERS: dict[str, object] = {
     "merge":            run_merge,
     "split":            run_split,
     "eda":              run_eda,
+    "train":            run_train,
+    "classify":         run_classify,
 }
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# helpers
 
 def _banner(text: str, char: str = "=", width: int = 60) -> None:
     print(f"\n{char * width}")
@@ -116,7 +135,7 @@ def _fmt_duration(seconds: float) -> str:
     return f"{m}m {s}s"
 
 
-# ── main ─────────────────────────────────────────────────────────────────────
+# main
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -124,7 +143,11 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="\n".join(f"  {n:<20} {d}" for n, d in STEPS),
     )
-    parser.add_argument("--config", default=CONFIG, help="Path to TOML config (default: configs/config.toml)")
+    parser.add_argument(
+        "--config",
+        default=os.environ.get("FLIGHT_DELAY_CONFIG", CONFIG),
+        help="Path to TOML config (default: env FLIGHT_DELAY_CONFIG or configs/config.toml)",
+    )
     parser.add_argument(
         "--steps",
         default=",".join(STEP_NAMES),
@@ -140,6 +163,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv()
+    except ImportError:
+        pass
+
     args = parse_args()
 
     requested = [s.strip() for s in args.steps.split(",") if s.strip()]
@@ -168,8 +198,8 @@ def main() -> None:
     # Load config once for all steps
     from src.data.preprocess import load_toml_config
     cfg = load_toml_config(args.config)
+    cfg["_config_path"] = args.config
 
-    pipeline_start = time.perf_counter()
     results: list[tuple[str, str, float]] = []  # (step, status, duration)
 
     for step in to_run:

@@ -96,6 +96,10 @@ weather_cols = ["precipitation", "temperature_c", "humidity_pct", "wind_speed_km
 outlier_cap_cols = ["distance", "precipitation", "temperature_c", "humidity_pct", "wind_speed_kmh"]
 iqr_multiplier = 1.5
 
+[models]
+output_dir = "outputs/models"
+final_model = "outputs/models/final_model.pkl"
+
 [preprocessing]
 target_column = "is_delayed"
 train_split = 0.70

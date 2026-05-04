@@ -5,11 +5,15 @@ This module handles training of classification models for flight delay predictio
 It loads preprocessed data, trains multiple models, and performs hyperparameter tuning.
 """
 
-import pandas as pd
-import numpy as np
-import os
+from __future__ import annotations
+
 import pickle
+from pathlib import Path
+from typing import Any
+
 import joblib
+import numpy as np
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
@@ -17,22 +21,24 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 
 
-def load_data(base_path='data/processed/splits/'):
+def load_data(base_path: str | Path = "data/processed/splits/") -> tuple[Any, Any, Any, Any, Any, Any]:
     """
     Load preprocessed training, validation, and test splits.
-    
+
     Args:
-        base_path: Path to the splits directory
-        
+        base_path: Path to the splits directory (with trailing slash) or unused
+            when ``cfg``-based loading is used via :func:`run_training`.
+
     Returns:
         tuple: (X_train, y_train, X_val, y_val, X_test, y_test)
     """
-    X_train = pd.read_csv(os.path.join(base_path, 'X_train.csv'))
-    y_train = pd.read_csv(os.path.join(base_path, 'y_train.csv')).squeeze()
-    X_val = pd.read_csv(os.path.join(base_path, 'X_val.csv'))
-    y_val = pd.read_csv(os.path.join(base_path, 'y_val.csv')).squeeze()
-    X_test = pd.read_csv(os.path.join(base_path, 'X_test.csv'))
-    y_test = pd.read_csv(os.path.join(base_path, 'y_test.csv')).squeeze()
+    base = Path(base_path)
+    X_train = pd.read_csv(base / "X_train.csv")
+    y_train = pd.read_csv(base / "y_train.csv").squeeze()
+    X_val = pd.read_csv(base / "X_val.csv")
+    y_val = pd.read_csv(base / "y_val.csv").squeeze()
+    X_test = pd.read_csv(base / "X_test.csv")
+    y_test = pd.read_csv(base / "y_test.csv").squeeze()
     
     print('X_train shape:', X_train.shape)
     print('X_val shape  :', X_val.shape)
@@ -41,7 +47,22 @@ def load_data(base_path='data/processed/splits/'):
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-def load_class_weights(weights_path='outputs/encoders/class_weights.pkl'):
+def load_data_from_config(cfg: dict) -> tuple[Any, Any, Any, Any, Any, Any]:
+    """Load splits using ``cfg['files']['splits']`` paths (same layout as :func:`load_data`)."""
+    sp = cfg["files"]["splits"]
+    X_train = pd.read_csv(sp["x_train"])
+    y_train = pd.read_csv(sp["y_train"]).squeeze()
+    X_val = pd.read_csv(sp["x_val"])
+    y_val = pd.read_csv(sp["y_val"]).squeeze()
+    X_test = pd.read_csv(sp["x_test"])
+    y_test = pd.read_csv(sp["y_test"]).squeeze()
+    print("X_train shape:", X_train.shape)
+    print("X_val shape  :", X_val.shape)
+    print("X_test shape :", X_test.shape)
+    return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+def load_class_weights(weights_path: str | Path = "outputs/encoders/class_weights.pkl"):
     """
     Load class weights if available.
     
@@ -83,7 +104,7 @@ def prepare_numeric_data(X_train, X_val, X_test):
     return X_train_numeric, X_val_numeric, X_test_numeric
 
 
-def train_models(X_train_numeric, y_train, class_weights=None, output_dir='outputs/models'):
+def train_models(X_train_numeric, y_train, class_weights=None, output_dir: str | Path = "outputs/models"):
     """
     Train multiple classification models.
     
@@ -122,20 +143,21 @@ def train_models(X_train_numeric, y_train, class_weights=None, output_dir='outpu
     }
     
     results = {}
-    os.makedirs(output_dir, exist_ok=True)
-    
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
     for name, model in models.items():
         print(f'Training {name}...')
         model.fit(X_train_numeric, y_train)
         results[name] = model
-        model_path = os.path.join(output_dir, f'{name}.pkl')
+        model_path = out / f"{name}.pkl"
         joblib.dump(model, model_path)
         print(f'Saved model: {model_path}')
     
     return results, scale_pos_weight
 
 
-def tune_xgboost(X_train_numeric, y_train, scale_pos_weight, output_dir='outputs/models'):
+def tune_xgboost(X_train_numeric, y_train, scale_pos_weight, output_dir: str | Path = "outputs/models"):
     """
     Perform hyperparameter tuning for XGBoost.
     
@@ -176,8 +198,9 @@ def tune_xgboost(X_train_numeric, y_train, scale_pos_weight, output_dir='outputs
     print('Best Parameters:', tuned_xgb.best_params_)
     print('Best ROC-AUC:', tuned_xgb.best_score_)
     
-    os.makedirs(output_dir, exist_ok=True)
-    model_path = os.path.join(output_dir, 'XGBoost_tuned.pkl')
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    model_path = out / "XGBoost_tuned.pkl"
     joblib.dump(tuned_xgb.best_estimator_, model_path)
     print(f'Saved tuned XGBoost to {model_path}')
     
@@ -199,7 +222,7 @@ def get_final_model(tuned_xgb, results):
     return final_model
 
 
-def save_final_model(final_model, output_path='outputs/models/final_model.pkl'):
+def save_final_model(final_model, output_path: str | Path = "outputs/models/final_model.pkl"):
     """
     Save the final model.
     
@@ -207,38 +230,37 @@ def save_final_model(final_model, output_path='outputs/models/final_model.pkl'):
         final_model: Model to save
         output_path: Path to save the model
     """
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    joblib.dump(final_model, output_path)
-    print(f'Saved final model to {output_path}')
+    outp = Path(output_path)
+    outp.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(final_model, outp)
+    print(f"Saved final model to {outp}")
 
 
-def main():
-    """Main training pipeline."""
-    # Load data
-    X_train, y_train, X_val, y_val, X_test, y_test = load_data()
-    
-    # Load class weights
-    class_weights = load_class_weights()
-    
-    # Prepare numeric data
-    X_train_numeric, X_val_numeric, X_test_numeric = prepare_numeric_data(
-        X_train, X_val, X_test
+def run_training(cfg: dict) -> None:
+    """Train and persist models; paths from ``cfg`` (``files.splits``, ``files.encoders``, ``models``)."""
+    models_cfg = cfg.get("models", {})
+    output_dir = models_cfg.get("output_dir", "outputs/models")
+    final_path = models_cfg.get("final_model", str(Path(output_dir) / "final_model.pkl"))
+    weights_path = cfg.get("files", {}).get("encoders", {}).get(
+        "class_weights", "outputs/encoders/class_weights.pkl"
     )
-    
-    # Train models
-    results, scale_pos_weight = train_models(X_train_numeric, y_train, class_weights)
-    
-    # Tune XGBoost
-    tuned_xgb = tune_xgboost(X_train_numeric, y_train, scale_pos_weight)
-    
-    # Get final model
+
+    X_train, y_train, X_val, y_val, X_test, y_test = load_data_from_config(cfg)
+    class_weights = load_class_weights(weights_path)
+    X_train_numeric, X_val_numeric, X_test_numeric = prepare_numeric_data(X_train, X_val, X_test)
+    results, scale_pos_weight = train_models(X_train_numeric, y_train, class_weights, output_dir=output_dir)
+    tuned_xgb = tune_xgboost(X_train_numeric, y_train, scale_pos_weight, output_dir=output_dir)
     final_model = get_final_model(tuned_xgb, results)
-    
-    # Save final model
-    save_final_model(final_model)
-    
-    print('\nTraining completed successfully!')
+    save_final_model(final_model, final_path)
+    print("\nTraining completed successfully!")
 
 
-if __name__ == '__main__':
+def main() -> None:
+    """CLI entry: load default TOML and run training."""
+    from src.data.preprocess import load_toml_config
+
+    run_training(load_toml_config("configs/config.toml"))
+
+
+if __name__ == "__main__":
     main()

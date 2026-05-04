@@ -2,9 +2,20 @@ data/raw/*.csv
 data/raw/*.zip
 data/processed/*.csv
 data/processed/splits/*.csv
-outputs/reports/validation_*/*.csv
+data/reports/*
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .venv
+.env
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+outputs/
+
 

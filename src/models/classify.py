@@ -4,16 +4,20 @@ Model Classification and Evaluation Module
 This module handles model evaluation, predictions, and feature importance analysis.
 """
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import os
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
 import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 from sklearn.metrics import classification_report, roc_auc_score, ConfusionMatrixDisplay
 
 
-def load_models(model_dir='outputs/models'):
+def load_models(model_dir: str | Path = "outputs/models"):
     """
     Load trained models from disk.
     
@@ -25,16 +29,16 @@ def load_models(model_dir='outputs/models'):
     """
     models = {}
     model_files = {
-        'Logistic_Regression': 'Logistic_Regression.pkl',
-        'Random_Forest': 'Random_Forest.pkl',
-        'XGBoost': 'XGBoost.pkl'
+        "Logistic_Regression": "Logistic_Regression.pkl",
+        "Random_Forest": "Random_Forest.pkl",
+        "XGBoost": "XGBoost.pkl",
     }
-    
+    base = Path(model_dir)
     for name, filename in model_files.items():
-        model_path = os.path.join(model_dir, filename)
-        if os.path.exists(model_path):
+        model_path = base / filename
+        if model_path.is_file():
             models[name] = joblib.load(model_path)
-            print(f'Loaded {name} from {model_path}')
+            print(f"Loaded {name} from {model_path}")
     
     return models
 
@@ -88,7 +92,13 @@ def evaluate_models(results, X_val_numeric, y_val, X_test_numeric, y_test):
     return perf_df
 
 
-def plot_confusion_matrix(model, X_test_numeric, y_test, model_name, output_dir='outputs/reports'):
+def plot_confusion_matrix(
+    model: Any,
+    X_test_numeric: pd.DataFrame,
+    y_test: Any,
+    model_name: str,
+    output_dir: str | Path = "outputs/reports",
+) -> None:
     """
     Plot and save confusion matrix.
     
@@ -98,52 +108,67 @@ def plot_confusion_matrix(model, X_test_numeric, y_test, model_name, output_dir=
         model_name: Name of the model
         output_dir: Directory to save plot
     """
-    os.makedirs(output_dir, exist_ok=True)
-    
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
     plt.figure(figsize=(8, 6))
-    ConfusionMatrixDisplay.from_estimator(model, X_test_numeric, y_test, cmap='Blues')
-    plt.title(f'Confusion Matrix: {model_name} (Test)')
+    ConfusionMatrixDisplay.from_estimator(model, X_test_numeric, y_test, cmap="Blues")
+    plt.title(f"Confusion Matrix: {model_name} (Test)")
     plt.grid(False)
     plt.tight_layout()
-    
-    output_path = os.path.join(output_dir, f'confusion_matrix_{model_name}.png')
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
-    print(f'Saved confusion matrix: {output_path}')
+
+    output_path = out / f"confusion_matrix_{model_name}.png"
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    print(f"Saved confusion matrix: {output_path}")
     plt.close()
 
 
-def plot_feature_importance(final_model, feature_names, output_dir='outputs/reports'):
+def _underlying_estimator(final_model: Any) -> Any:
+    """Return step with ``feature_importances_`` (Pipeline or bare tree booster)."""
+    if hasattr(final_model, "named_steps") and "classifier" in final_model.named_steps:
+        return final_model.named_steps["classifier"]
+    return final_model
+
+
+def plot_feature_importance(
+    final_model: Any,
+    feature_names: pd.Index | list[str],
+    output_dir: str | Path = "outputs/reports",
+) -> pd.DataFrame | None:
     """
     Extract and plot feature importance.
-    
+
     Args:
-        final_model: Final trained model
+        final_model: Final trained model (sklearn Pipeline or tree-based estimator)
         feature_names: Names of features
         output_dir: Directory to save plot
     """
-    if hasattr(final_model.named_steps['classifier'], 'feature_importances_'):
-        importance = final_model.named_steps['classifier'].feature_importances_
-        feat_imp_df = pd.DataFrame({
-            'Feature': feature_names,
-            'Importance': importance
-        }).sort_values('Importance', ascending=False).head(20)
-        
-        os.makedirs(output_dir, exist_ok=True)
-        
-        plt.figure(figsize=(8, 10))
-        sns.barplot(x='Importance', y='Feature', data=feat_imp_df, palette='viridis')
-        plt.title('Top 20 Feature Importances')
-        plt.tight_layout()
-        
-        output_path = os.path.join(output_dir, 'feature_importance.png')
-        plt.savefig(output_path, dpi=150, bbox_inches='tight')
-        print(f'Saved feature importance plot: {output_path}')
-        plt.close()
-        
-        return feat_imp_df
-    else:
-        print('Model does not expose feature_importances_; skipping plot')
+    est = _underlying_estimator(final_model)
+    if not hasattr(est, "feature_importances_"):
+        print("Model does not expose feature_importances_; skipping plot")
         return None
+
+    importance = est.feature_importances_
+    feat_imp_df = (
+        pd.DataFrame({"Feature": list(feature_names), "Importance": importance})
+        .sort_values("Importance", ascending=False)
+        .head(20)
+    )
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    plt.figure(figsize=(8, 10))
+    sns.barplot(x="Importance", y="Feature", data=feat_imp_df, palette="viridis")
+    plt.title("Top 20 Feature Importances")
+    plt.tight_layout()
+
+    output_path = out / "feature_importance.png"
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    print(f"Saved feature importance plot: {output_path}")
+    plt.close()
+
+    return feat_imp_df
 
 
 def predict(model, X):
@@ -178,7 +203,7 @@ def predict_proba(model, X):
         return None
 
 
-def load_final_model(model_path='outputs/models/final_model.pkl'):
+def load_final_model(model_path: str | Path = "outputs/models/final_model.pkl"):
     """
     Load the final trained model.
     
@@ -188,56 +213,61 @@ def load_final_model(model_path='outputs/models/final_model.pkl'):
     Returns:
         Model object: Final model
     """
-    if os.path.exists(model_path):
-        model = joblib.load(model_path)
-        print(f'Loaded final model from {model_path}')
+    mp = Path(model_path)
+    if mp.is_file():
+        model = joblib.load(mp)
+        print(f"Loaded final model from {mp}")
         return model
-    else:
-        print(f'Model not found at {model_path}')
-        return None
+    print(f"Model not found at {mp}")
+    return None
 
 
-def main():
-    """Main evaluation pipeline."""
-    # Load data
-    base = 'data/processed/splits/'
-    X_val = pd.read_csv(base + 'X_val.csv')
-    y_val = pd.read_csv(base + 'y_val.csv').squeeze()
-    X_test = pd.read_csv(base + 'X_test.csv')
-    y_test = pd.read_csv(base + 'y_test.csv').squeeze()
-    
-    # Prepare numeric data
+def run_classification(cfg: dict) -> None:
+    """Evaluate saved models; paths from ``cfg`` (``files.splits``, ``models``, ``paths``)."""
+    sp = cfg["files"]["splits"]
+    X_val = pd.read_csv(sp["x_val"])
+    y_val = pd.read_csv(sp["y_val"]).squeeze()
+    X_test = pd.read_csv(sp["x_test"])
+    y_test = pd.read_csv(sp["y_test"]).squeeze()
+
     numeric_cols = X_val.select_dtypes(include=[np.number]).columns
     X_val_numeric = X_val[numeric_cols]
     X_test_numeric = X_test[numeric_cols]
-    
-    # Load models
-    results = load_models()
-    
+
+    models_cfg = cfg.get("models", {})
+    model_dir = models_cfg.get("output_dir", "outputs/models")
+    reports_dir = cfg.get("paths", {}).get("reports_dir", "outputs/reports")
+    final_path = models_cfg.get("final_model", str(Path(model_dir) / "final_model.pkl"))
+
+    results = load_models(model_dir)
     if not results:
-        print('No trained models found. Please run train.py first.')
+        print("No trained models found. Run the train step first.")
         return
-    
-    # Evaluate models
+
     perf_df = evaluate_models(results, X_val_numeric, y_val, X_test_numeric, y_test)
-    print('\n=== Model Performance Summary ===')
+    print("\n=== Model Performance Summary ===")
     print(perf_df.round(4))
-    
-    # Plot confusion matrix for best model
-    best_model_name = perf_df.iloc[0]['Model']
-    print(f'\nBest model by Test ROC_AUC: {best_model_name}')
-    plot_confusion_matrix(results[best_model_name], X_test_numeric, y_test, best_model_name)
-    
-    # Load and analyze final model
-    final_model = load_final_model()
+
+    best_model_name = perf_df.iloc[0]["Model"]
+    print(f"\nBest model by Test ROC_AUC: {best_model_name}")
+    plot_confusion_matrix(results[best_model_name], X_test_numeric, y_test, best_model_name, output_dir=reports_dir)
+
+    final_model = load_final_model(final_path)
     if final_model is not None:
-        feat_imp_df = plot_feature_importance(final_model, X_test_numeric.columns)
+        feat_imp_df = plot_feature_importance(final_model, X_test_numeric.columns, output_dir=reports_dir)
         if feat_imp_df is not None:
-            print('\n=== Top 20 Feature Importances ===')
+            print("\n=== Top 20 Feature Importances ===")
             print(feat_imp_df)
-    
-    print('\nEvaluation completed successfully!')
+
+    print("\nEvaluation completed successfully!")
 
 
-if __name__ == '__main__':
+def main() -> None:
+    """CLI entry: load default TOML and run evaluation."""
+    from src.data.preprocess import load_toml_config
+
+    run_classification(load_toml_config("configs/config.toml"))
+
+
+if __name__ == "__main__":
     main()
