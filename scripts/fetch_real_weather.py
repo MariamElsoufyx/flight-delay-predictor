@@ -41,7 +41,7 @@ CITIES: dict[str, tuple[float, float]] = {
 
 START_DATE = "2024-01-01"
 END_DATE   = "2024-12-31"
-OUTPUT_PATH = Path("data/raw/weather_data.csv")
+OUTPUT_PATH = Path("data/raw/weather_data_real.csv")
 BACKUP_PATH = Path("data/raw/weather_data.synthetic.csv")
 
 
