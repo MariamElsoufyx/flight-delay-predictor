@@ -1,5 +1,5 @@
 # Flight delay predictor — common tasks (requires Poetry: https://python-poetry.org/)
-.PHONY: install install-dev test test-verbose cov pipeline-dry-run pipeline clean
+.PHONY: install install-dev test test-verbose cov pipeline-dry-run pipeline dashboard clean
 
 install:
 	poetry install --no-interaction
@@ -26,6 +26,9 @@ pipeline:
 # Data + features + merge + split + EDA only (skip long model training)
 pipeline-data:
 	poetry run python run_pipeline.py --skip train,classify
+
+dashboard:
+	poetry run streamlit run src/dashboard/app.py
 
 clean:
 	rm -rf .pytest_cache htmlcov .coverage coverage.xml __pycache__ .mypy_cache

@@ -65,7 +65,6 @@ def clean_raw_flight_data(df: pd.DataFrame, config: dict) -> pd.DataFrame:
             "cancellation_code",  # 98.64% missing
             "year",               # constant value
             "day_of_month",       # not in feature set
-            # fl_date kept until dep_hour/date are derived in feature engineering
             "origin_city_name", "origin_state_nm",
             "dest_city_name", "dest_state_nm",
             "op_carrier_fl_num",  # flight number, not predictive

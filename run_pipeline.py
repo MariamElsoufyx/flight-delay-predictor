@@ -12,17 +12,17 @@ Execution order
 8. train           -- train baseline + tuned models -> outputs/models/
 9. classify        -- evaluate models, confusion matrix, feature importance -> outputs/reports/
 
-Run the full pipeline:
-    python run_pipeline.py
+Run the full pipeline (use Poetry so xgboost and other deps are available):
+    poetry run python run_pipeline.py
 
 Run only specific steps (comma-separated):
-    python run_pipeline.py --steps validate,flight-features,weather-features
+    poetry run python run_pipeline.py --steps validate,flight-features,weather-features
 
 Skip specific steps:
-    python run_pipeline.py --skip validate
+    poetry run python run_pipeline.py --skip validate
 
 Show what would run without executing:
-    python run_pipeline.py --dry-run
+    poetry run python run_pipeline.py --dry-run
 """
 
 from __future__ import annotations

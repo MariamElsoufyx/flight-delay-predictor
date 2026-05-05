@@ -14,11 +14,12 @@ from typing import Any
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
+from xgboost import XGBClassifier
+
 
 
 def load_data(base_path: str | Path = "data/processed/splits/") -> tuple[Any, Any, Any, Any, Any, Any]:

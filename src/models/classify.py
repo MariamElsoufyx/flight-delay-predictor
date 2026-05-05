@@ -67,7 +67,8 @@ def evaluate_models(results, X_val_numeric, y_val, X_test_numeric, y_test):
         )
         val_report = classification_report(y_val, y_val_pred, output_dict=True)
         val_auc = roc_auc_score(y_val, y_val_proba) if len(set(y_val)) > 1 else None
-        
+        v1 = val_report.get("1", {})
+
         # Test metrics
         y_test_pred = model.predict(X_test_numeric)
         y_test_proba = (
@@ -77,18 +78,24 @@ def evaluate_models(results, X_val_numeric, y_val, X_test_numeric, y_test):
         )
         test_report = classification_report(y_test, y_test_pred, output_dict=True)
         test_auc = roc_auc_score(y_test, y_test_proba) if len(set(y_test)) > 1 else None
-        
+        t1 = test_report.get("1", {})
+
         performance_summary.append({
-            'Model': name,
-            'Val_Accuracy': val_report['accuracy'],
-            'Val_F1_Delayed': val_report['1']['f1-score'],
-            'Val_ROC_AUC': val_auc,
-            'Test_Accuracy': test_report['accuracy'],
-            'Test_F1_Delayed': test_report['1']['f1-score'],
-            'Test_ROC_AUC': test_auc
+            "Model": name,
+            "Val_Accuracy": val_report["accuracy"],
+            "Val_Precision_Delayed": v1.get("precision"),
+            "Val_Recall_Delayed": v1.get("recall"),
+            "Val_F1_Delayed": v1.get("f1-score"),
+            "Val_ROC_AUC": val_auc,
+            "Test_Accuracy": test_report["accuracy"],
+            "Test_Precision_Delayed": t1.get("precision"),
+            "Test_Recall_Delayed": t1.get("recall"),
+            "Test_F1_Delayed": t1.get("f1-score"),
+            "Test_ROC_AUC": test_auc,
         })
-    
-    perf_df = pd.DataFrame(performance_summary).sort_values(by='Test_ROC_AUC', ascending=False)
+
+    perf_df = pd.DataFrame(performance_summary)
+    perf_df = perf_df.sort_values(by="Test_ROC_AUC", ascending=False, na_position="last")
     return perf_df
 
 
@@ -247,6 +254,14 @@ def run_classification(cfg: dict) -> None:
     perf_df = evaluate_models(results, X_val_numeric, y_val, X_test_numeric, y_test)
     print("\n=== Model Performance Summary ===")
     print(perf_df.round(4))
+
+    summary_rel = cfg.get("files", {}).get("reports", {}).get(
+        "model_performance_summary", "outputs/reports/model_performance_summary.csv"
+    )
+    summary_path = Path(summary_rel)
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    perf_df.to_csv(summary_path, index=False)
+    print(f"\nSaved model performance summary: {summary_path.resolve()}")
 
     best_model_name = perf_df.iloc[0]["Model"]
     print(f"\nBest model by Test ROC_AUC: {best_model_name}")

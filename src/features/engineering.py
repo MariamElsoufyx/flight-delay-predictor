@@ -2,7 +2,7 @@
 
 Flight pipeline  (build_flight_features):
   raw flight CSV  -->  clean_raw_flight_data (preprocessing)
-                   -->  dep_hour, is_weekend, is_delayed
+                   -->  dep_hour, is_delayed
                    -->  rename / reorder columns
                    -->  data/processed/flight_features.csv
 
@@ -55,13 +55,12 @@ FLIGHT_COLUMN_ORDER = [
     "date",
     "day_of_week",
     "month",
-    "is_weekend",
     "is_delayed",
 ]
 
 
 def _engineer_flight_features(df: pd.DataFrame, config: dict) -> pd.DataFrame:
-    """Create dep_hour, is_weekend, is_delayed; rename carrier; reorder columns."""
+    """Create dep_hour, is_delayed; rename carrier; reorder columns."""
     flight_cfg = config.get("flight_pipeline", {})
     delay_threshold_min = flight_cfg.get("delay_threshold_minutes", 15)
     weekend_days = flight_cfg.get("weekend_day_of_week_values", [6, 7])
@@ -69,10 +68,6 @@ def _engineer_flight_features(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     # dep_hour: scheduled departure hour extracted from HHMM integer
     if "crs_dep_time" in df.columns:
         df["dep_hour"] = (df["crs_dep_time"] // 100).astype(int)
-
-    # is_weekend: 1 if Saturday (6) or Sunday (7) per BTS day-of-week coding
-    if "day_of_week" in df.columns:
-        df["is_weekend"] = df["day_of_week"].isin(weekend_days).astype(int)
 
     # is_delayed: 1 if arrival delay exceeds threshold
     if "arr_delay" in df.columns:

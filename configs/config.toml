@@ -45,6 +45,7 @@ correlation_heatmap = "outputs/reports/correlation_heatmap.png"
 eda_weather_delays = "outputs/reports/eda_weather_delays.png"
 eda_weather_boxplots = "outputs/reports/eda_weather_boxplots.png"
 class_balance_comparison = "outputs/reports/class_balance_comparison.png"
+model_performance_summary = "outputs/reports/model_performance_summary.csv"
 
 [validation]
 flight_output_dir = "outputs/reports/validation_flight"
