@@ -13,7 +13,7 @@ encoders_dir = "outputs/encoders"
 
 [files.raw]
 flight_data = "data/raw/flight_data_2024.csv"
-weather_data = "data/raw/weather_data.csv"
+weather_data = "data/raw/weather_data_real.csv"
 airports_data = "data/raw/global_airports.csv"
 
 [files.processed]
