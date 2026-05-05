@@ -19,6 +19,8 @@ cp .env.example .env
 
 ## Run
 
+**Important:** Run scripts with **`poetry run python run_pipeline.py --steps train,classify`** (
+
 **Full pipeline** (needs raw CSV paths defined in `configs/config.toml`):
 
 ```bash
@@ -46,6 +48,16 @@ poetry run python -m src.features.engineering --pipeline all
 poetry run python -m src.reports.eda --report flight
 ```
 
+## Stakeholder dashboard (Streamlit)
+
+Interactive view of **EDA charts**, **model comparison**, and **plain-language takeaways** (run from project root so paths resolve):
+
+```bash
+poetry run streamlit run src/dashboard/app.py
+```
+
+Use the sidebar to point at another `config.toml` or project folder if needed. After **train** and **classify**, the dashboard loads `outputs/reports/model_performance_summary.csv` automatically.
+
 ## Tests
 
 ```bash
@@ -67,6 +79,7 @@ poetry run pytest --cov=src --cov-report=html
 | `src/data/` | Validation, preprocessing, merge |
 | `src/features/` | Flight / weather feature engineering |
 | `src/reports/` | EDA figure generation |
+| `src/dashboard/` | Streamlit stakeholder dashboard |
 | `src/models/` | Training / classification helpers |
 | `configs/config.toml` | Paths and hyperparameters |
 | `tests/` | `pytest` + coverage |

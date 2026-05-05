@@ -64,7 +64,7 @@ def _safe_qcut(series: pd.Series, q: int, labels: list[str]) -> pd.Series:
     return pd.qcut(series, q=q, labels=labels[:n_bins], duplicates="drop")
 
 
-# ── individual report functions ───────────────────────────────────────────────
+# individual report functions 
 
 def plot_flight_eda(config: dict) -> None:
     """6-panel flight EDA: class distribution + delay rates by various features."""
@@ -129,15 +129,6 @@ def plot_flight_eda(config: dict) -> None:
     ax.set_xlabel("Hour of Day")
     ax.set_ylabel("Delay Rate (%)")
     ax.set_xticks(range(0, 25))
-
-    # 6 — delay rate: weekday vs weekend
-    ax = axes[2, 1]
-    weekend_delay = df.groupby("is_weekend")["is_delayed"].mean() * 100
-    weekend_delay.index = ["Weekday", "Weekend"][: len(weekend_delay)]
-    weekend_delay.plot(kind="bar", ax=ax, color=["steelblue", "tomato"], edgecolor="black")
-    ax.set_title("Delay Rate: Weekday vs Weekend (%)")
-    ax.set_ylabel("Delay Rate (%)")
-    ax.tick_params(axis="x", rotation=0)
 
     fig.tight_layout()
     _save(fig, out_path)
